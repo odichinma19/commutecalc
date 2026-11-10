@@ -1,89 +1,100 @@
-import { useEffect, useState } from "react";
-
-const API = "http://127.0.0.1:8000";
-
-type Option = {
-  id: number;
-  mode: string;
-  price_per_trip: number;
-  duration_min: number;
-  monthly_pass_price: number | null;
-  riders: number;
-};
-
-type Plan = {
-  id: number;
-  name: string;
-  origin: string;
-  destination: string;
-  distance_km: number;
-  trips_per_week: number;
-  options: Option[];
-};
-
-type Item = {
-  rank: number;
-  option_id: number;
-  mode: string;
-  monthly_cost: number;
-  monthly_minutes: number;
-  monthly_co2_kg: number;
-  uses_pass: boolean;
-  break_even_trips: number | null;
-};
-
-type Comparison = {
-  trips_per_month: number;
-  priority: string;
-  results: Item[];
-  best: Item | null;
-};
-
-type Priority = "cost" | "time" | "co2";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { createPlan, deletePlan, getComparison, getPlans } from "./api";
+import type { Comparison, Plan, Priority } from "./types";
 
 export default function App() {
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [selected, setSelected] = useState<Plan | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [priority, setPriority] = useState<Priority>("cost");
   const [comparison, setComparison] = useState<Comparison | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch(`${API}/api/plans`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Server error ${res.status}`);
-        return res.json();
-      })
-      .then(setPlans)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+  const loadPlans = useCallback(async () => {
+    try {
+      setPlans(await getPlans());
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (!selected) return;
-    fetch(`${API}/api/plans/${selected.id}/comparison?priority=${priority}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Server error ${res.status}`);
-        return res.json();
-      })
+    loadPlans();
+  }, [loadPlans]);
+
+  useEffect(() => {
+    if (selectedId === null) return;
+    getComparison(selectedId, priority)
       .then(setComparison)
       .catch((e) => setError(e.message));
-  }, [selected, priority]);
+  }, [selectedId, priority]);
+
+  async function handleCreate(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const f = new FormData(form);
+    try {
+      const plan = await createPlan({
+        name: String(f.get("name")),
+        origin: String(f.get("origin")),
+        destination: String(f.get("destination")),
+        distance_km: Number(f.get("distance_km")),
+        trips_per_week: Number(f.get("trips_per_week")),
+      });
+      form.reset();
+      setError("");
+      await loadPlans();
+      setSelectedId(plan.id);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  async function handleDelete(id: number) {
+    if (!window.confirm("Delete this plan?")) return;
+    try {
+      await deletePlan(id);
+      if (selectedId === id) {
+        setSelectedId(null);
+        setComparison(null);
+      }
+      await loadPlans();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  const selected = plans.find((p) => p.id === selectedId);
 
   return (
     <main style={{ maxWidth: 720, margin: "2rem auto", padding: "0 1rem" }}>
       <h1>CommuteCalc</h1>
-      {loading && <p>Loading…</p>}
       {error && <p style={{ color: "crimson" }}>Something went wrong: {error}</p>}
-      {!loading && !error && plans.length === 0 && <p>No plans yet.</p>}
 
+      <form onSubmit={handleCreate}>
+        <h2>New commute plan</h2>
+        <input name="name" placeholder="Name" required />{" "}
+        <input name="origin" placeholder="From" required minLength={2} />{" "}
+        <input name="destination" placeholder="To" required minLength={2} />{" "}
+        <input name="distance_km" type="number" placeholder="Distance (km)"
+               required min={1} step="any" />{" "}
+        <input name="trips_per_week" type="number" placeholder="One-way trips per week"
+               required min={1} max={14} />{" "}
+        <button type="submit">Add plan</button>
+      </form>
+
+      <h2>Your plans</h2>
+      {loading && <p>Loading…</p>}
+      {!loading && plans.length === 0 && <p>No plans yet. Add one above.</p>}
       <ul>
         {plans.map((p) => (
           <li key={p.id}>
-            <button onClick={() => setSelected(p)}>
+            <button onClick={() => setSelectedId(p.id)}>
               {p.name}: {p.origin} to {p.destination}, {p.trips_per_week} trips a week
-            </button>
+            </button>{" "}
+            <button onClick={() => handleDelete(p.id)}>Delete</button>
           </li>
         ))}
       </ul>
@@ -94,11 +105,7 @@ export default function App() {
           <p>
             About {comparison.trips_per_month} one-way trips a month. Rank by:{" "}
             {(["cost", "time", "co2"] as Priority[]).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPriority(p)}
-                disabled={priority === p}
-              >
+              <button key={p} onClick={() => setPriority(p)} disabled={priority === p}>
                 {p}
               </button>
             ))}
@@ -106,8 +113,8 @@ export default function App() {
           <ol>
             {comparison.results.map((r) => (
               <li key={r.option_id}>
-                <strong>{r.mode}</strong>: {r.monthly_cost} PLN, {Math.round(r.monthly_minutes / 60)} h,{" "}
-                {r.monthly_co2_kg} kg CO2
+                <strong>{r.mode}</strong>: {r.monthly_cost} PLN,{" "}
+                {Math.round(r.monthly_minutes / 60)} h, {r.monthly_co2_kg} kg CO2
                 {r.uses_pass && " (monthly pass is cheaper)"}
                 {r.break_even_trips !== null &&
                   ` – pass pays off from ${r.break_even_trips} trips a month`}
@@ -115,8 +122,8 @@ export default function App() {
             ))}
           </ol>
           <p>
-            Prices and times are your own estimates, not live data. One trip means one
-            one-way journey.
+            Prices and times are your own estimates, not live data. One trip means
+            one one-way journey.
           </p>
         </section>
       )}
