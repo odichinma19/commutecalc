@@ -114,24 +114,38 @@ export default function App() {
       </p>
 
       <div className="track" aria-hidden="true">
-        <svg className="train" viewBox="0 0 176 44" width="176" height="44">
-          <rect x="0" y="6" width="52" height="26" rx="5" fill="#1f7a5a" />
-          <rect x="56" y="6" width="52" height="26" rx="5" fill="#1f7a5a" />
-          <rect x="112" y="6" width="52" height="26" rx="5" fill="#17614a" />
-          <path d="M164 6 h4 q8 4 8 26 h-12z" fill="#17614a" />
-          <rect x="6" y="12" width="10" height="9" rx="2" fill="#fff" />
-          <rect x="22" y="12" width="10" height="9" rx="2" fill="#fff" />
-          <rect x="62" y="12" width="10" height="9" rx="2" fill="#fff" />
-          <rect x="78" y="12" width="10" height="9" rx="2" fill="#fff" />
-          <rect x="118" y="12" width="10" height="9" rx="2" fill="#fff" />
-          <rect x="134" y="12" width="10" height="9" rx="2" fill="#fff" />
-          <circle cx="14" cy="36" r="4" fill="#1c2733" />
-          <circle cx="40" cy="36" r="4" fill="#1c2733" />
-          <circle cx="70" cy="36" r="4" fill="#1c2733" />
-          <circle cx="96" cy="36" r="4" fill="#1c2733" />
-          <circle cx="126" cy="36" r="4" fill="#1c2733" />
-          <circle cx="152" cy="36" r="4" fill="#1c2733" />
-        </svg>
+      <div className="layer hills" />
+      <div className="layer city" />
+      <div className="layer trees" />  
+        <svg className="train" viewBox="-60 0 300 44" width="300" height="44">
+  <rect x="-58" y="12" width="40" height="2" rx="1" fill="#9aa7b4" opacity="0.6" />
+  <rect x="-58" y="20" width="52" height="2" rx="1" fill="#9aa7b4" opacity="0.6" />
+  <rect x="-58" y="28" width="34" height="2" rx="1" fill="#9aa7b4" opacity="0.6" />
+
+  <rect x="0" y="8" width="70" height="22" rx="4" fill="#1f7a5a" />
+  <rect x="74" y="8" width="70" height="22" rx="4" fill="#1f7a5a" />
+  <path d="M148 8 H192 C214 8 232 18 238 30 H148 Z" fill="#17614a" />
+
+  <rect x="0" y="23" width="70" height="2" fill="#9be3c4" />
+  <rect x="74" y="23" width="70" height="2" fill="#9be3c4" />
+  <rect x="148" y="23" width="88" height="2" fill="#9be3c4" />
+
+  <rect x="8" y="13" width="9" height="7" rx="2" fill="#fff" />
+  <rect x="24" y="13" width="9" height="7" rx="2" fill="#fff" />
+  <rect x="40" y="13" width="9" height="7" rx="2" fill="#fff" />
+  <rect x="82" y="13" width="9" height="7" rx="2" fill="#fff" />
+  <rect x="98" y="13" width="9" height="7" rx="2" fill="#fff" />
+  <rect x="114" y="13" width="9" height="7" rx="2" fill="#fff" />
+  <rect x="156" y="13" width="9" height="7" rx="2" fill="#fff" />
+  <path d="M176 13 H192 C202 13 210 17 216 22 H176 Z" fill="#fff" />
+
+  <circle cx="14" cy="34" r="3.5" fill="#1c2733" />
+  <circle cx="54" cy="34" r="3.5" fill="#1c2733" />
+  <circle cx="88" cy="34" r="3.5" fill="#1c2733" />
+  <circle cx="128" cy="34" r="3.5" fill="#1c2733" />
+  <circle cx="162" cy="34" r="3.5" fill="#1c2733" />
+  <circle cx="214" cy="34" r="3.5" fill="#1c2733" />
+</svg>
       </div>
 
       {error && <div className="error">Something went wrong: {error}</div>}
