@@ -185,3 +185,34 @@ button.danger {
 .empty {
   color: var(--muted);
 }
+.track {
+  position: relative;
+  height: 52px;
+  margin: 0 0 1.25rem;
+  overflow: hidden;
+  border-bottom: 4px solid #5d6b7a;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 14px,
+    rgba(93, 107, 122, 0.35) 14px 18px
+  ) bottom / 100% 6px no-repeat;
+}
+
+.train {
+  position: absolute;
+  bottom: 4px;
+  left: -190px;
+  animation: drive 12s linear infinite;
+}
+
+@keyframes drive {
+  from { left: -190px; }
+  to { left: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .train {
+    animation: none;
+    left: 1rem;
+  }
+}

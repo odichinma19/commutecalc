@@ -113,6 +113,27 @@ export default function App() {
         Compare train, bus and carpool for a long-distance commute, over a month.
       </p>
 
+      <div className="track" aria-hidden="true">
+        <svg className="train" viewBox="0 0 176 44" width="176" height="44">
+          <rect x="0" y="6" width="52" height="26" rx="5" fill="#1f7a5a" />
+          <rect x="56" y="6" width="52" height="26" rx="5" fill="#1f7a5a" />
+          <rect x="112" y="6" width="52" height="26" rx="5" fill="#17614a" />
+          <path d="M164 6 h4 q8 4 8 26 h-12z" fill="#17614a" />
+          <rect x="6" y="12" width="10" height="9" rx="2" fill="#fff" />
+          <rect x="22" y="12" width="10" height="9" rx="2" fill="#fff" />
+          <rect x="62" y="12" width="10" height="9" rx="2" fill="#fff" />
+          <rect x="78" y="12" width="10" height="9" rx="2" fill="#fff" />
+          <rect x="118" y="12" width="10" height="9" rx="2" fill="#fff" />
+          <rect x="134" y="12" width="10" height="9" rx="2" fill="#fff" />
+          <circle cx="14" cy="36" r="4" fill="#1c2733" />
+          <circle cx="40" cy="36" r="4" fill="#1c2733" />
+          <circle cx="70" cy="36" r="4" fill="#1c2733" />
+          <circle cx="96" cy="36" r="4" fill="#1c2733" />
+          <circle cx="126" cy="36" r="4" fill="#1c2733" />
+          <circle cx="152" cy="36" r="4" fill="#1c2733" />
+        </svg>
+      </div>
+
       {error && <div className="error">Something went wrong: {error}</div>}
 
       <form className="card" onSubmit={handleCreate}>
@@ -194,7 +215,11 @@ export default function App() {
             <div className="result" key={r.option_id}>
               <div>
                 <span className="mode">{r.rank}. {r.mode}</span>
-                {r.rank === 1 && <span className="badge best">best for {priority === "co2" ? "CO₂" : priority}</span>}
+                {r.rank === 1 && (
+                  <span className="badge best">
+                    best for {priority === "co2" ? "CO₂" : priority}
+                  </span>
+                )}
                 {r.uses_pass && <span className="badge">monthly pass</span>}
                 <div className="numbers">
                   {r.monthly_cost} PLN / month · {Math.round(r.monthly_minutes / 60)} h
