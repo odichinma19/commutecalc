@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { createPlan, deletePlan, getComparison, getPlans } from "./api";
+import {
+  addOption, createPlan, deleteOption, deletePlan, getComparison, getPlans,
+} from "./api";
 import type { Comparison, Plan, Priority } from "./types";
 
 export default function App() {
@@ -7,6 +9,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [priority, setPriority] = useState<Priority>("cost");
   const [comparison, setComparison] = useState<Comparison | null>(null);
+  const [version, setVersion] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +32,7 @@ export default function App() {
     getComparison(selectedId, priority)
       .then(setComparison)
       .catch((e) => setError(e.message));
-  }, [selectedId, priority]);
+  }, [selectedId, priority, version]);
 
   async function handleCreate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,6 +63,40 @@ export default function App() {
         setSelectedId(null);
         setComparison(null);
       }
+      await loadPlans();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  async function handleAddOption(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (selectedId === null) return;
+    const form = e.currentTarget;
+    const f = new FormData(form);
+    const pass = String(f.get("monthly_pass_price"));
+    try {
+      await addOption(selectedId, {
+        mode: String(f.get("mode")),
+        price_per_trip: Number(f.get("price_per_trip")),
+        duration_min: Number(f.get("duration_min")),
+        monthly_pass_price: pass === "" ? null : Number(pass),
+        riders: Number(f.get("riders") || 1),
+      });
+      form.reset();
+      setError("");
+      setVersion((v) => v + 1);
+      await loadPlans();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  async function handleDeleteOption(optionId: number) {
+    if (selectedId === null) return;
+    try {
+      await deleteOption(selectedId, optionId);
+      setVersion((v) => v + 1);
       await loadPlans();
     } catch (err) {
       setError((err as Error).message);
@@ -110,6 +147,10 @@ export default function App() {
               </button>
             ))}
           </p>
+
+          {comparison.results.length === 0 && (
+            <p>No options yet. Add a way to travel below.</p>
+          )}
           <ol>
             {comparison.results.map((r) => (
               <li key={r.option_id}>
@@ -117,13 +158,35 @@ export default function App() {
                 {Math.round(r.monthly_minutes / 60)} h, {r.monthly_co2_kg} kg CO2
                 {r.uses_pass && " (monthly pass is cheaper)"}
                 {r.break_even_trips !== null &&
-                  ` – pass pays off from ${r.break_even_trips} trips a month`}
+                  ` – pass pays off from ${r.break_even_trips} trips a month`}{" "}
+                <button onClick={() => handleDeleteOption(r.option_id)}>Remove</button>
               </li>
             ))}
           </ol>
+
+          <form onSubmit={handleAddOption}>
+            <h3>Add an option</h3>
+            <select name="mode" defaultValue="train">
+              <option value="train">train</option>
+              <option value="bus">bus</option>
+              <option value="carpool">carpool</option>
+              <option value="car">car</option>
+            </select>{" "}
+            <input name="price_per_trip" type="number" placeholder="Price per trip (PLN)"
+                   required min={0} step="any" />{" "}
+            <input name="duration_min" type="number" placeholder="Minutes per trip"
+                   required min={1} />{" "}
+            <input name="monthly_pass_price" type="number" placeholder="Monthly pass (optional)"
+                   min={0} step="any" />{" "}
+            <input name="riders" type="number" placeholder="Riders (carpool)"
+                   min={1} max={8} />{" "}
+            <button type="submit">Add option</button>
+          </form>
+
           <p>
             Prices and times are your own estimates, not live data. One trip means
-            one one-way journey.
+            one one-way journey. For carpool, the price is the whole car's cost, split
+            between the riders.
           </p>
         </section>
       )}

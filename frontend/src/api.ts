@@ -1,4 +1,6 @@
-import type { Comparison, NewPlan, Plan, Priority } from "./types";
+import type {
+  Comparison, NewOption, NewPlan, Option, Plan, Priority,
+} from "./types";
 
 const API = "http://127.0.0.1:8000";
 
@@ -33,3 +35,12 @@ export const deletePlan = (id: number) =>
 
 export const getComparison = (id: number, priority: Priority) =>
   request<Comparison>(`/api/plans/${id}/comparison?priority=${priority}`);
+
+export const addOption = (planId: number, data: NewOption) =>
+  request<Option>(`/api/plans/${planId}/options`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const deleteOption = (planId: number, optionId: number) =>
+  request<void>(`/api/plans/${planId}/options/${optionId}`, { method: "DELETE" });

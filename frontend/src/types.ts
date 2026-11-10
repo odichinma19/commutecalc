@@ -21,6 +21,8 @@ export type Plan = {
 
 export type NewPlan = Omit<Plan, "id" | "options">;
 
+export type NewOption = Omit<Option, "id">;
+
 export type Item = {
   rank: number;
   option_id: number;
