@@ -23,3 +23,12 @@ def compare_option(mode, price_per_trip, duration_min, distance_km,
     minutes = duration_min * trips
     co2 = CO2_KG_PER_KM[mode] * distance_km * trips / share
     return OptionResult(mode, round(cost, 2), round(minutes, 1), round(co2, 1), uses_pass)
+def break_even_trips(mode, price_per_trip, monthly_pass_price, riders=1):
+    """Trips per month at which a pass starts to beat single tickets."""
+    if monthly_pass_price is None:
+        return None
+    share = riders if mode == "carpool" else 1
+    per_trip = price_per_trip / share
+    if per_trip <= 0:
+        return None
+    return round(monthly_pass_price / per_trip, 1)
