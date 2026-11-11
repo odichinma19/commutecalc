@@ -83,3 +83,17 @@ def test_deleting_plan_removes_it():
     plan_id = client.post("/api/plans", json=PLAN).json()["id"]
     assert client.delete(f"/api/plans/{plan_id}").status_code == 204
     assert client.get(f"/api/plans/{plan_id}").status_code == 404
+    
+
+def test_advisor_respects_budget():
+    plan_id = client.post("/api/plans", json=PLAN).json()["id"]
+    client.post(f"/api/plans/{plan_id}/options", json=TRAIN)
+    client.post(f"/api/plans/{plan_id}/options", json=BUS)
+    r = client.post(
+        f"/api/plans/{plan_id}/advice",
+        json={"text": "I can spend 400 PLN a month and want the least CO2"},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["understood"] == {"priority": "co2", "max_budget": 400.0}
+    assert data["recommendation"]["mode"] == "train"    

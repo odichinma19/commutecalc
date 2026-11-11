@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.options import router as options_router
+from app.api.advisor import router as advisor_router
 from app.api.comparison import router as comparison_router
 from app.api.plans import router as plans_router
 from app.database import Base, engine
@@ -27,3 +28,4 @@ def health():
 app.include_router(plans_router)
 app.include_router(options_router)
 app.include_router(comparison_router)
+app.include_router(advisor_router)
