@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 WEEKS_PER_MONTH = 52 / 12
-CO2_KG_PER_KM = {"car": 0.17, "carpool": 0.17, "bus": 0.09, "train": 0.03}
+CO2_KG_PER_KM = {"car": 0.17, "carpool": 0.17, "bus": 0.02776, "train": 0.03546}
 
 
 @dataclass
