@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import {
-  addOption, createPlan, deleteOption, deletePlan, getComparison, getPlans,
+  addOption, askAdvice, createPlan, deleteOption, deletePlan, getComparison, getPlans,
 } from "./api";
-import type { Comparison, Plan, Priority } from "./types";
+import type { Advice, Comparison, Plan, Priority } from "./types";
 import "./App.css";
+
+const EXAMPLES = [
+  "I can spend 600 PLN a month and want the least CO2",
+  "I am in a hurry, fastest option please",
+  "Cheapest, max 400 PLN",
+];
 
 export default function App() {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -11,6 +17,9 @@ export default function App() {
   const [priority, setPriority] = useState<Priority>("cost");
   const [comparison, setComparison] = useState<Comparison | null>(null);
   const [version, setVersion] = useState(0);
+  const [question, setQuestion] = useState("");
+  const [advice, setAdvice] = useState<Advice | null>(null);
+  const [advising, setAdvising] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -35,6 +44,12 @@ export default function App() {
       .catch((e) => setError(e.message));
   }, [selectedId, priority, version]);
 
+  function selectPlan(id: number) {
+    setSelectedId(id);
+    setAdvice(null);
+    setQuestion("");
+  }
+
   async function handleCreate(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -50,7 +65,7 @@ export default function App() {
       form.reset();
       setError("");
       await loadPlans();
-      setSelectedId(plan.id);
+      selectPlan(plan.id);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -63,6 +78,7 @@ export default function App() {
       if (selectedId === id) {
         setSelectedId(null);
         setComparison(null);
+        setAdvice(null);
       }
       await loadPlans();
     } catch (err) {
@@ -86,6 +102,7 @@ export default function App() {
       });
       form.reset();
       setError("");
+      setAdvice(null);
       setVersion((v) => v + 1);
       await loadPlans();
     } catch (err) {
@@ -97,6 +114,7 @@ export default function App() {
     if (selectedId === null) return;
     try {
       await deleteOption(selectedId, optionId);
+      setAdvice(null);
       setVersion((v) => v + 1);
       await loadPlans();
     } catch (err) {
@@ -104,7 +122,23 @@ export default function App() {
     }
   }
 
+  async function handleAdvice(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const text = question.trim();
+    if (selectedId === null || text.length < 3) return;
+    setAdvising(true);
+    try {
+      setAdvice(await askAdvice(selectedId, text));
+      setError("");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setAdvising(false);
+    }
+  }
+
   const selected = plans.find((p) => p.id === selectedId);
+  const label = (p: string) => (p === "co2" ? "CO₂" : p);
 
   return (
     <main className="app">
@@ -114,38 +148,34 @@ export default function App() {
       </p>
 
       <div className="track" aria-hidden="true">
-      <div className="layer hills" />
-      <div className="layer city" />
-      <div className="layer trees" />  
+        <div className="layer hills" />
+        <div className="layer city" />
+        <div className="layer trees" />
         <svg className="train" viewBox="-60 0 300 44" width="300" height="44">
-  <rect x="-58" y="12" width="40" height="2" rx="1" fill="#9aa7b4" opacity="0.6" />
-  <rect x="-58" y="20" width="52" height="2" rx="1" fill="#9aa7b4" opacity="0.6" />
-  <rect x="-58" y="28" width="34" height="2" rx="1" fill="#9aa7b4" opacity="0.6" />
-
-  <rect x="0" y="8" width="70" height="22" rx="4" fill="#1f7a5a" />
-  <rect x="74" y="8" width="70" height="22" rx="4" fill="#1f7a5a" />
-  <path d="M148 8 H192 C214 8 232 18 238 30 H148 Z" fill="#17614a" />
-
-  <rect x="0" y="23" width="70" height="2" fill="#9be3c4" />
-  <rect x="74" y="23" width="70" height="2" fill="#9be3c4" />
-  <rect x="148" y="23" width="88" height="2" fill="#9be3c4" />
-
-  <rect x="8" y="13" width="9" height="7" rx="2" fill="#fff" />
-  <rect x="24" y="13" width="9" height="7" rx="2" fill="#fff" />
-  <rect x="40" y="13" width="9" height="7" rx="2" fill="#fff" />
-  <rect x="82" y="13" width="9" height="7" rx="2" fill="#fff" />
-  <rect x="98" y="13" width="9" height="7" rx="2" fill="#fff" />
-  <rect x="114" y="13" width="9" height="7" rx="2" fill="#fff" />
-  <rect x="156" y="13" width="9" height="7" rx="2" fill="#fff" />
-  <path d="M176 13 H192 C202 13 210 17 216 22 H176 Z" fill="#fff" />
-
-  <circle cx="14" cy="34" r="3.5" fill="#1c2733" />
-  <circle cx="54" cy="34" r="3.5" fill="#1c2733" />
-  <circle cx="88" cy="34" r="3.5" fill="#1c2733" />
-  <circle cx="128" cy="34" r="3.5" fill="#1c2733" />
-  <circle cx="162" cy="34" r="3.5" fill="#1c2733" />
-  <circle cx="214" cy="34" r="3.5" fill="#1c2733" />
-</svg>
+          <rect x="-58" y="12" width="40" height="2" rx="1" fill="#9aa7b4" opacity="0.6" />
+          <rect x="-58" y="20" width="52" height="2" rx="1" fill="#9aa7b4" opacity="0.6" />
+          <rect x="-58" y="28" width="34" height="2" rx="1" fill="#9aa7b4" opacity="0.6" />
+          <rect x="0" y="8" width="70" height="22" rx="4" fill="#1f7a5a" />
+          <rect x="74" y="8" width="70" height="22" rx="4" fill="#1f7a5a" />
+          <path d="M148 8 H192 C214 8 232 18 238 30 H148 Z" fill="#17614a" />
+          <rect x="0" y="23" width="70" height="2" fill="#9be3c4" />
+          <rect x="74" y="23" width="70" height="2" fill="#9be3c4" />
+          <rect x="148" y="23" width="88" height="2" fill="#9be3c4" />
+          <rect x="8" y="13" width="9" height="7" rx="2" fill="#fff" />
+          <rect x="24" y="13" width="9" height="7" rx="2" fill="#fff" />
+          <rect x="40" y="13" width="9" height="7" rx="2" fill="#fff" />
+          <rect x="82" y="13" width="9" height="7" rx="2" fill="#fff" />
+          <rect x="98" y="13" width="9" height="7" rx="2" fill="#fff" />
+          <rect x="114" y="13" width="9" height="7" rx="2" fill="#fff" />
+          <rect x="156" y="13" width="9" height="7" rx="2" fill="#fff" />
+          <path d="M176 13 H192 C202 13 210 17 216 22 H176 Z" fill="#fff" />
+          <circle cx="14" cy="34" r="3.5" fill="#1c2733" />
+          <circle cx="54" cy="34" r="3.5" fill="#1c2733" />
+          <circle cx="88" cy="34" r="3.5" fill="#1c2733" />
+          <circle cx="128" cy="34" r="3.5" fill="#1c2733" />
+          <circle cx="162" cy="34" r="3.5" fill="#1c2733" />
+          <circle cx="214" cy="34" r="3.5" fill="#1c2733" />
+        </svg>
       </div>
 
       {error && <div className="error">Something went wrong: {error}</div>}
@@ -190,7 +220,7 @@ export default function App() {
             <li className="plan-row" key={p.id}>
               <button
                 className={`plan-button ${p.id === selectedId ? "active" : ""}`}
-                onClick={() => setSelectedId(p.id)}
+                onClick={() => selectPlan(p.id)}
               >
                 <strong>{p.name}</strong>: {p.origin} to {p.destination},{" "}
                 {p.trips_per_week} trips a week
@@ -217,7 +247,7 @@ export default function App() {
                 className={priority === p ? "selected" : ""}
                 onClick={() => setPriority(p)}
               >
-                {p === "co2" ? "CO₂" : p}
+                {label(p)}
               </button>
             ))}
           </div>
@@ -230,9 +260,7 @@ export default function App() {
               <div>
                 <span className="mode">{r.rank}. {r.mode}</span>
                 {r.rank === 1 && (
-                  <span className="badge best">
-                    best for {priority === "co2" ? "CO₂" : priority}
-                  </span>
+                  <span className="badge best">best for {label(priority)}</span>
                 )}
                 {r.uses_pass && <span className="badge">monthly pass</span>}
                 <div className="numbers">
@@ -250,6 +278,49 @@ export default function App() {
               </button>
             </div>
           ))}
+
+          {comparison.results.length > 0 && (
+            <form className="advisor" onSubmit={handleAdvice}>
+              <h3>Ask the advisor</h3>
+              <p className="note">
+                Describe what matters to you. It picks a priority and a budget from
+                your sentence, then ranks your own options (rule-based, no AI model yet).
+              </p>
+              <div className="advisor-row">
+                <input
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="e.g. I can spend 600 PLN a month and want the least CO2"
+                  minLength={3}
+                  maxLength={500}
+                  required
+                />
+                <button className="primary" type="submit" disabled={advising}>
+                  {advising ? "Thinking…" : "Advise me"}
+                </button>
+              </div>
+              <div className="chips">
+                {EXAMPLES.map((ex) => (
+                  <button type="button" className="chip" key={ex}
+                          onClick={() => setQuestion(ex)}>
+                    {ex}
+                  </button>
+                ))}
+              </div>
+
+              {advice && (
+                <div className="advice">
+                  <p>{advice.explanation}</p>
+                  <p className="note">
+                    Understood: priority {label(advice.understood.priority)}
+                    {advice.understood.max_budget !== null &&
+                      `, budget ${advice.understood.max_budget} PLN a month`}
+                    {" "}· answered by {advice.source}
+                  </p>
+                </div>
+              )}
+            </form>
+          )}
 
           <form onSubmit={handleAddOption}>
             <h3>Add an option</h3>

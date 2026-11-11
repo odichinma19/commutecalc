@@ -40,3 +40,10 @@ export type Comparison = {
   results: Item[];
   best: Item | null;
 };
+
+export type Advice = {
+  understood: { priority: Priority; max_budget: number | null };
+  recommendation: Item | null;
+  explanation: string;
+  source: string;
+};
