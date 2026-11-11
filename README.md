@@ -5,6 +5,10 @@ commute (for example Łódź to Gdańsk) over a month: cost, travel time and CO�
 
 **Demo video:** [demo.mp4](demo.mp4)
 
+
+https://github.com/user-attachments/assets/fe0eeec0-2e3d-4c7a-abbb-177a07d7eae2
+
+
 ## What it does
 - Create commute plans: from, to, distance and one-way trips per week.
 - Add travel options to a plan, each with a price per trip, duration, an optional monthly
