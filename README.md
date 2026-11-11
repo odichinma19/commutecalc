@@ -27,7 +27,7 @@ function and explains the result.
 - It never invents numbers: every figure comes from the options you entered.
 - It understands a number followed by PLN or zł, or phrases like "max 400", plus a few
   keywords for cost, time and CO₂. If it can't read a priority, it defaults to cost.
-- Prompts with a budget nothing fits get a clear message and the cheapest option.
+- If nothing fits the budget, it says so and names the cheapest option.
 
 ## Tech
 - **Back end:** Python, FastAPI, SQLAlchemy, SQLite, Pydantic, pytest
@@ -84,16 +84,21 @@ Tests (from the `backend` folder): `python -m pytest`
 - One trip means one one-way journey.
 - Prices and times are estimates entered by the user, not live data.
 - For carpool, the price is the whole car's cost, split between the riders.
-- CO₂ factors per passenger-km are rough averages (car and carpool 0.17, bus 0.09,
-  train 0.03 kg). Source: [ADD THE SOURCE YOU CHECKED].
+- CO₂ factors (kg CO₂e): national rail 0.03546 and coach 0.02776 per passenger-km, car and
+  carpool 0.17 per vehicle-km (divided by the riders for carpool). Source: UK Government
+  GHG Conversion Factors for Company Reporting 2025 (DESNZ/DEFRA), "Business travel – land".
+  "Bus" in this app means an intercity coach.
+- These are UK averages, not Polish ones. Poland's electricity mix is more carbon-intensive,
+  so the real train figure is probably higher.
 - No user accounts: all plans are shared in one local database.
 
 ## How I used AI
-[WRITE THIS YOURSELF, HONESTLY. Suggested starting point: I used ChatGPT to draft the
-first project idea and structure, and Claude as a step-by-step tutor that proposed code,
-which I typed in or pasted, ran and debugged. I wrote and ran the tests, fixed errors as
-they came up, and can explain each part of the code. The AI advisor feature is rule-based
-and does not call an AI model.]
+I used ChatGPT to explore ideas and an early project structure, and chose a different idea.
+I then used Claude as a step-by-step coding assistant: it proposed the architecture and most
+of the code, and I typed or pasted each file, ran it, fixed the errors that came up (wrong
+folders, file names, data entry mistakes) and ran the tests. I checked the CO₂ factors
+against the UK government's published data. The advisor is rule-based and does not call an
+AI model.
 
 ## Possible next steps
 - Optional LLM step to understand more phrasings and word the explanation, falling back to
@@ -101,4 +106,5 @@ and does not call an AI model.]
 - Real timetable and price data, and user accounts.
 
 ## Credits
-Background photo from Pexels: [PHOTOGRAPHER'S NAME].
+Background photo: "W 8 Street" subway platform, via Pixabay (uploader: Pexels), Pixabay
+Content License.
